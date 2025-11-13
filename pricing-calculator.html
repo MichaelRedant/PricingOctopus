@@ -1,0 +1,728 @@
+<style>
+  .octo-calculator {
+    --accent: #464feb;
+    --border: #dfe1eb;
+    --bg-muted: #f7f8fc;
+    font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    color: #222;
+    box-shadow: 0 10px 35px rgba(70, 79, 235, 0.08);
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .octo-calculator h2 {
+    margin: 0 0 8px;
+    font-size: 1.6rem;
+    color: #111;
+  }
+  .octo-calculator p.lead {
+    margin: 0 0 24px;
+    color: #555;
+  }
+  .octo-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(260px, 1fr);
+    gap: 24px;
+  }
+  .octo-panel {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    background: #fff;
+  }
+  .octo-panel + .octo-panel {
+    margin-top: 16px;
+  }
+  .octo-panel h3 {
+    margin: 0 0 12px;
+    font-size: 1.2rem;
+    color: #1f2233;
+  }
+  .octo-panel h4 {
+    margin: 20px 0 8px;
+    font-size: 1rem;
+    color: #1f2233;
+  }
+  .octo-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+  }
+  .octo-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .octo-field label {
+    font-size: 0.88rem;
+    color: #555;
+  }
+  .octo-field input,
+  .octo-field select {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 0.95rem;
+  }
+  .octo-field input[type="checkbox"] {
+    width: auto;
+  }
+  .octo-tagline {
+    font-size: 0.85rem;
+    color: #666;
+  }
+  .octo-summary {
+    background: var(--bg-muted);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .octo-summary h3 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+  .octo-totals {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+  }
+  .octo-totals div {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #ebecf3;
+    padding: 12px;
+    text-align: center;
+  }
+  .octo-totals span {
+    display: block;
+    font-weight: 600;
+    font-size: 1.15rem;
+    margin-top: 6px;
+    color: var(--accent);
+  }
+  .octo-breakdown {
+    max-height: 260px;
+    overflow: auto;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    background: #fff;
+  }
+  .octo-breakdown li {
+    list-style: none;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f1f7;
+    font-size: 0.9rem;
+    color: #444;
+  }
+  .octo-breakdown li strong {
+    color: #111;
+  }
+  .octo-breakdown li:last-child {
+    border-bottom: none;
+  }
+  .octo-note {
+    font-size: 0.78rem;
+    color: #6a6f85;
+    line-height: 1.5;
+  }
+  .octo-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(70, 79, 235, 0.08);
+    color: var(--accent);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    margin-bottom: 10px;
+  }
+  .octo-hidden {
+    display: none !important;
+  }
+  @media (max-width: 960px) {
+    .octo-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="octo-calculator" data-octo-calculator>
+  <h2>Octopus prijscalculator</h2>
+  <p class="lead">Alle bedragen zijn excl. 21% btw. Stel hieronder een offerte samen voor U-, K- of B-dossiers.</p>
+
+  <div class="octo-layout">
+    <div>
+      <div class="octo-panel">
+        <div class="octo-field">
+          <label for="octo-dossier-type">Dossiertype</label>
+          <select id="octo-dossier-type" data-field="dossierType">
+            <option value="u">U-dossier (ondernemer betaalt zelf)</option>
+            <option value="k">K-dossier (via kantoor, ~20% korting & geen opstart)</option>
+            <option value="b">B-dossier (accountantslicentie voor kantoren)</option>
+          </select>
+        </div>
+        <p class="octo-tagline">U- en K-dossiers hebben dezelfde modules. K-dossiers ontvangen automatisch ~20% korting op licenties en opties.</p>
+      </div>
+
+      <div class="octo-panel" data-section="uk">
+        <div class="octo-chip">Klantenportaal & facturatie</div>
+        <div class="octo-fields">
+          <div class="octo-field">
+            <label for="octo-portal-qty"># dossiers (basislicentie)</label>
+            <input type="number" id="octo-portal-qty" min="0" value="0" data-field="portalQty">
+          </div>
+          <div class="octo-field">
+            <label for="octo-portal-extra-lines">Extra lijnbundels (x15.000)</label>
+            <input type="number" id="octo-portal-extra-lines" min="0" value="0" data-field="portalExtraLines">
+            <small class="octo-note">Activeren vanaf het 2e jaar.</small>
+          </div>
+          <div class="octo-field">
+            <label for="octo-portal-extra-dossiers">Multi-dossier packs (+5)</label>
+            <input type="number" id="octo-portal-extra-dossiers" min="0" value="0" data-field="portalExtraPacks">
+          </div>
+          <div class="octo-field">
+            <label for="octo-portal-bank">Bankmodules</label>
+            <input type="number" id="octo-portal-bank" min="0" value="0" data-field="portalBankQty">
+          </div>
+        </div>
+        <h4>Boekhoudprogramma (volledige boekhouding)</h4>
+        <div class="octo-fields">
+          <div class="octo-field">
+            <label for="octo-small-qty">Small (tot 4.000 lijnen)</label>
+            <input type="number" id="octo-small-qty" min="0" value="0" data-field="smallQty">
+          </div>
+          <div class="octo-field">
+            <label for="octo-medium-qty">Medium (tot 10.000 lijnen)</label>
+            <input type="number" id="octo-medium-qty" min="0" value="0" data-field="mediumQty">
+          </div>
+          <div class="octo-field">
+            <label for="octo-large-qty">Large (tot 30.000 lijnen)</label>
+            <input type="number" id="octo-large-qty" min="0" value="0" data-field="largeQty">
+          </div>
+          <div class="octo-field">
+            <label for="octo-accounting-extra-lines">Extra lijnbundels (x30.000)</label>
+            <input type="number" id="octo-accounting-extra-lines" min="0" value="0" data-field="accountingExtraPacks">
+            <small class="octo-note">Vanaf 2e jaar bij >30k lijnen.</small>
+          </div>
+        </div>
+        <h4>Optionele modules (per dossier)</h4>
+        <div class="octo-fields">
+          <div class="octo-field">
+            <label for="octo-bookkeeping-extra-dossiers">Extra dossiers pakket (+5)</label>
+            <input type="number" id="octo-bookkeeping-extra-dossiers" min="0" value="0" data-field="accountingExtraPacksDossiers">
+          </div>
+          <div class="octo-field">
+            <label for="octo-bookkeeping-bank">Bankmodules (boekhouding)</label>
+            <input type="number" id="octo-bookkeeping-bank" min="0" value="0" data-field="accountingBankQty">
+          </div>
+          <div class="octo-field">
+            <label for="octo-bookkeeping-fact">Facturatiemodules (op boekhouding)</label>
+            <input type="number" id="octo-bookkeeping-fact" min="0" value="0" data-field="accountingFactQty">
+          </div>
+          <div class="octo-field">
+            <label for="octo-dms-gb">Extra DMS-opslag (GB &gt; 1)</label>
+            <input type="number" id="octo-dms-gb" min="0" step="0.5" value="0" data-field="dmsGb">
+          </div>
+          <div class="octo-field">
+            <label for="octo-offertes">Offertes & leveringsnota's</label>
+            <input type="number" id="octo-offertes" min="0" value="0" data-field="offertesQty">
+          </div>
+          <div class="octo-field">
+            <label for="octo-opstart">Nieuwe licenties (opstart &euro;50)</label>
+            <input type="number" id="octo-opstart" min="0" value="0" data-field="onboardingQty">
+            <small class="octo-note">Niet van toepassing bij K-dossiers.</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="octo-panel octo-hidden" data-section="b">
+        <div class="octo-chip">B-dossiers (accountantslicentie)</div>
+        <div class="octo-fields">
+          <div class="octo-field">
+            <label for="octo-b-dossiers"># interne dossiers</label>
+            <input type="number" id="octo-b-dossiers" min="0" value="5" data-field="bDossiers">
+            <small class="octo-note">Min. 5 dossiers, 1 intern dossier gratis incl. modules.</small>
+          </div>
+          <div class="octo-field">
+            <label for="octo-b-full-option">Full Option dossiers</label>
+            <input type="number" id="octo-b-full-option" min="0" value="0" data-field="bFullOption">
+          </div>
+          <div class="octo-field">
+            <label for="octo-b-bank">Bankmodules</label>
+            <input type="number" id="octo-b-bank" min="0" value="0" data-field="bBankQty">
+          </div>
+          <div class="octo-field">
+            <label for="octo-b-web">Webservice (API) modules</label>
+            <input type="number" id="octo-b-web" min="0" value="0" data-field="bApiQty">
+          </div>
+          <div class="octo-field">
+            <label for="octo-b-dms">Extra DMS-opslag (GB)</label>
+            <input type="number" id="octo-b-dms" min="0" step="0.5" value="0" data-field="bDmsGb">
+          </div>
+          <div class="octo-field">
+            <label for="octo-b-archive">Archiveringsmodules</label>
+            <input type="number" id="octo-b-archive" min="0" value="0" data-field="archiveQty">
+            <small class="octo-note">&euro;12/jaar per dossier na stopzetting.</small>
+          </div>
+          <div class="octo-field">
+            <label class="octo-check">
+              <input type="checkbox" data-field="bOnboarding" checked>
+              Opstartkost B-licentie (&euro;100)
+            </label>
+          </div>
+        </div>
+        <p class="octo-note">Peppol en de ondernemersportaal-API blijven gratis voor ondernemers. Bankkosten van de bank (CODA) zijn niet inbegrepen.</p>
+      </div>
+
+      <div class="octo-panel">
+        <div class="octo-chip">Extra diensten</div>
+        <div class="octo-fields">
+          <div class="octo-field">
+            <label for="octo-webinar">Webinars (gratis)</label>
+            <input type="number" id="octo-webinar" min="0" value="0" data-field="webinarQty">
+          </div>
+          <div class="octo-field">
+            <label for="octo-training-hours">Opleiding ter plaatse (uren)</label>
+            <input type="number" id="octo-training-hours" min="0" step="0.5" value="0" data-field="trainingHours">
+            <small class="octo-note">&euro;125 per gestart uur.</small>
+          </div>
+          <div class="octo-field">
+            <label for="octo-support-hours">Extra support (uren)</label>
+            <input type="number" id="octo-support-hours" min="0" step="0.5" value="0" data-field="supportHours">
+            <small class="octo-note">&euro;75 per gestart uur.</small>
+          </div>
+          <div class="octo-field">
+            <label for="octo-consult-weeks">Consultatie-toegang (weken)</label>
+            <input type="number" id="octo-consult-weeks" min="0" value="0" data-field="consultWeeks">
+            <small class="octo-note">&euro;100 per week.</small>
+          </div>
+          <div class="octo-field">
+            <label for="octo-backup-count">Offline backup herstellen</label>
+            <input type="number" id="octo-backup-count" min="0" value="0" data-field="backupQty">
+            <small class="octo-note">&euro;200 per dossier/week.</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="octo-summary">
+      <div>
+        <h3>Resultaat</h3>
+        <p class="octo-tagline">Update automatisch bij elke wijziging.</p>
+      </div>
+      <div class="octo-totals">
+        <div>
+          Per maand
+          <span id="octo-monthly">&euro;0</span>
+        </div>
+        <div>
+          Per jaar
+          <span id="octo-yearly">&euro;0</span>
+        </div>
+        <div>
+          Eenmalig
+          <span id="octo-onetime">&euro;0</span>
+        </div>
+      </div>
+      <div>
+        <strong>Kostenposten</strong>
+        <ul class="octo-breakdown" id="octo-breakdown"></ul>
+      </div>
+      <p class="octo-note">
+        Tarieven gebaseerd op interne richtlijnen 2024-2025 voor Octopus (bankkosten der banken niet inbegrepen).
+        Naast deze modules blijven API/webservice, Peppol en webinars gratis.
+      </p>
+    </aside>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const root = document.querySelector('[data-octo-calculator]');
+    if (!root) return;
+
+    const els = {
+      monthly: root.querySelector('#octo-monthly'),
+      yearly: root.querySelector('#octo-yearly'),
+      oneTime: root.querySelector('#octo-onetime'),
+      breakdown: root.querySelector('#octo-breakdown'),
+      dossierType: root.querySelector('[data-field="dossierType"]'),
+      sections: {
+        uk: root.querySelector('[data-section="uk"]'),
+        b: root.querySelector('[data-section="b"]')
+      }
+    };
+
+    const PROFILES = {
+      u: {
+        label: 'U-dossier',
+        portal: { monthly: 10, yearly: 120, extraLines: { monthly: 5, yearly: 60 }, extraPack: { monthly: 5, yearly: 60 }, bank: { monthly: 5, yearly: 60 } },
+        bookkeeping: {
+          small: { monthly: 21, yearly: 252 },
+          medium: { monthly: 32, yearly: 384 },
+          large: { monthly: 42, yearly: 504 },
+          extraLines: { monthly: 10, yearly: 120 },
+          extraPack: { monthly: 10, yearly: 120 },
+          bank: { monthly: 10, yearly: 120 },
+          fact: { monthly: 10, yearly: 120 }
+        },
+        dms: { monthly: 1, yearly: 12 },
+        offertes: 50,
+        onboarding: 50
+      },
+      k: {
+        label: 'K-dossier (~20% korting)',
+        portal: { monthly: 8, yearly: 96, extraLines: { monthly: 4, yearly: 48 }, extraPack: { monthly: 4, yearly: 48 }, bank: { monthly: 4, yearly: 48 } },
+        bookkeeping: {
+          small: { monthly: 16.8, yearly: 201.6 },
+          medium: { monthly: 25.6, yearly: 307.2 },
+          large: { monthly: 33.6, yearly: 403.2 },
+          extraLines: { monthly: 8, yearly: 96 },
+          extraPack: { monthly: 8, yearly: 96 },
+          bank: { monthly: 8, yearly: 96 },
+          fact: { monthly: 8, yearly: 96 }
+        },
+        dms: { monthly: 0.8, yearly: 9.6 },
+        offertes: 40,
+        onboarding: 0
+      }
+    };
+
+    const formatCurrency = (value) => {
+      return new Intl.NumberFormat('nl-BE', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(value);
+    };
+
+    const sanitizeNumber = (input) => {
+      const value = typeof input === 'number' ? input : parseFloat(input);
+      return Number.isFinite(value) ? Math.max(0, value) : 0;
+    };
+
+    const ceilIfNeeded = (value) => Math.ceil(sanitizeNumber(value));
+
+    const getFieldValue = (name) => {
+      const el = root.querySelector('[data-field="' + name + '"]');
+      if (!el) return 0;
+      if (el.type === 'checkbox') return el.checked;
+      return sanitizeNumber(el.value);
+    };
+
+    const updateVisibility = (type) => {
+      const showUK = type === 'u' || type === 'k';
+      if (els.sections.uk) els.sections.uk.classList.toggle('octo-hidden', !showUK);
+      if (els.sections.b) els.sections.b.classList.toggle('octo-hidden', type !== 'b');
+    };
+
+    const addLine = (lines, config) => {
+      const entry = Object.assign({ monthly: 0, yearly: 0, oneTime: 0 }, config);
+      if (entry.monthly === 0 && entry.yearly === 0 && entry.oneTime === 0) return;
+      lines.push(entry);
+    };
+
+    const calculateUK = (type) => {
+      const profile = PROFILES[type];
+      const lines = [];
+      let monthly = 0;
+      let yearly = 0;
+      let oneTime = 0;
+
+      const portalQty = getFieldValue('portalQty');
+      if (portalQty > 0) {
+        const m = portalQty * profile.portal.monthly;
+        const y = portalQty * profile.portal.yearly;
+        monthly += m;
+        yearly += y;
+        addLine(lines, { label: 'Klantenportaal x ' + portalQty, monthly: m, yearly: y });
+      }
+
+      const portalExtraLines = getFieldValue('portalExtraLines');
+      if (portalExtraLines > 0) {
+        const m = portalExtraLines * profile.portal.extraLines.monthly;
+        const y = portalExtraLines * profile.portal.extraLines.yearly;
+        monthly += m;
+        yearly += y;
+        addLine(lines, { label: 'Extra lijnbundels klantenportaal x ' + portalExtraLines, monthly: m, yearly: y });
+      }
+
+      const portalExtraPacks = getFieldValue('portalExtraPacks');
+      if (portalExtraPacks > 0) {
+        const m = portalExtraPacks * profile.portal.extraPack.monthly;
+        const y = portalExtraPacks * profile.portal.extraPack.yearly;
+        monthly += m;
+        yearly += y;
+        addLine(lines, { label: 'Multi-dossier pakket klantenportaal x ' + portalExtraPacks, monthly: m, yearly: y });
+      }
+
+      const portalBankQty = getFieldValue('portalBankQty');
+      if (portalBankQty > 0) {
+        const m = portalBankQty * profile.portal.bank.monthly;
+        const y = portalBankQty * profile.portal.bank.yearly;
+        monthly += m;
+        yearly += y;
+        addLine(lines, { label: 'Bankmodule klantenportaal x ' + portalBankQty, monthly: m, yearly: y });
+      }
+
+      const smallQty = getFieldValue('smallQty');
+      if (smallQty > 0) {
+        const m = smallQty * profile.bookkeeping.small.monthly;
+        const y = smallQty * profile.bookkeeping.small.yearly;
+        monthly += m;
+        yearly += y;
+        addLine(lines, { label: 'Boekhouding Small x ' + smallQty, monthly: m, yearly: y });
+      }
+
+      const mediumQty = getFieldValue('mediumQty');
+      if (mediumQty > 0) {
+        const m = mediumQty * profile.bookkeeping.medium.monthly;
+        const y = mediumQty * profile.bookkeeping.medium.yearly;
+        monthly += m;
+        yearly += y;
+        addLine(lines, { label: 'Boekhouding Medium x ' + mediumQty, monthly: m, yearly: y });
+      }
+
+      const largeQty = getFieldValue('largeQty');
+      if (largeQty > 0) {
+        const m = largeQty * profile.bookkeeping.large.monthly;
+        const y = largeQty * profile.bookkeeping.large.yearly;
+        monthly += m;
+        yearly += y;
+        addLine(lines, { label: 'Boekhouding Large x ' + largeQty, monthly: m, yearly: y });
+      }
+
+      const accountingExtraPacks = getFieldValue('accountingExtraPacks');
+      if (accountingExtraPacks > 0) {
+        const m = accountingExtraPacks * profile.bookkeeping.extraLines.monthly;
+        const y = accountingExtraPacks * profile.bookkeeping.extraLines.yearly;
+        monthly += m;
+        yearly += y;
+        addLine(lines, { label: 'Extra lijnbundels boekhouding x ' + accountingExtraPacks, monthly: m, yearly: y });
+      }
+
+      const accountingExtraPacksDossiers = getFieldValue('accountingExtraPacksDossiers');
+      if (accountingExtraPacksDossiers > 0) {
+        const m = accountingExtraPacksDossiers * profile.bookkeeping.extraPack.monthly;
+        const y = accountingExtraPacksDossiers * profile.bookkeeping.extraPack.yearly;
+        monthly += m;
+        yearly += y;
+        addLine(lines, { label: 'Extra dossierpakket boekhouding x ' + accountingExtraPacksDossiers, monthly: m, yearly: y });
+      }
+
+      const accountingBankQty = getFieldValue('accountingBankQty');
+      if (accountingBankQty > 0) {
+        const m = accountingBankQty * profile.bookkeeping.bank.monthly;
+        const y = accountingBankQty * profile.bookkeeping.bank.yearly;
+        monthly += m;
+        yearly += y;
+        addLine(lines, { label: 'Bankmodule boekhouding x ' + accountingBankQty, monthly: m, yearly: y });
+      }
+
+      const accountingFactQty = getFieldValue('accountingFactQty');
+      if (accountingFactQty > 0) {
+        const m = accountingFactQty * profile.bookkeeping.fact.monthly;
+        const y = accountingFactQty * profile.bookkeeping.fact.yearly;
+        monthly += m;
+        yearly += y;
+        addLine(lines, { label: 'Facturatiemodule op boekhouding x ' + accountingFactQty, monthly: m, yearly: y });
+      }
+
+      const dmsGb = getFieldValue('dmsGb');
+      if (dmsGb > 0) {
+        const m = dmsGb * profile.dms.monthly;
+        const y = dmsGb * profile.dms.yearly;
+        monthly += m;
+        yearly += y;
+        addLine(lines, { label: 'Extra DMS-opslag ' + dmsGb + ' GB', monthly: m, yearly: y });
+      }
+
+      const offertesQty = getFieldValue('offertesQty');
+      if (offertesQty > 0) {
+        const cost = offertesQty * profile.offertes;
+        oneTime += cost;
+        addLine(lines, { label: 'Offertes & leveringsnota\'s x ' + offertesQty, oneTime: cost });
+      }
+
+      const onboardingQty = getFieldValue('onboardingQty');
+      if (onboardingQty > 0 && profile.onboarding > 0) {
+        const cost = onboardingQty * profile.onboarding;
+        oneTime += cost;
+        addLine(lines, { label: 'Opstartkost x ' + onboardingQty, oneTime: cost });
+      }
+
+      return { monthly, yearly, oneTime, lines };
+    };
+
+    const calculateB = () => {
+      const lines = [];
+      let monthly = 0;
+      let yearly = 0;
+      let oneTime = 0;
+
+      const dossiers = getFieldValue('bDossiers');
+      const tierOne = Math.min(dossiers, 50);
+      const tierTwo = Math.max(dossiers - 50, 0);
+      if (tierOne > 0) {
+        const y = tierOne * 15;
+        const m = y / 12;
+        yearly += y;
+        monthly += m;
+        addLine(lines, { label: 'B-dossiers 1-50 x ' + tierOne, monthly: m, yearly: y });
+      }
+      if (tierTwo > 0) {
+        const y = tierTwo * 10;
+        const m = y / 12;
+        yearly += y;
+        monthly += m;
+        addLine(lines, { label: 'B-dossiers vanaf 51 x ' + tierTwo, monthly: m, yearly: y });
+      }
+
+      const fullOption = Math.min(getFieldValue('bFullOption'), dossiers);
+      if (fullOption > 0) {
+        const m = fullOption * 3.5;
+        const y = m * 12;
+        monthly += m;
+        yearly += y;
+        addLine(lines, { label: 'Full Option pakketten x ' + fullOption, monthly: m, yearly: y });
+      }
+
+      const bankQty = Math.min(getFieldValue('bBankQty'), dossiers);
+      if (bankQty > 0) {
+        const y = bankQty * 5;
+        const m = y / 12;
+        yearly += y;
+        monthly += m;
+        addLine(lines, { label: 'Bankmodule x ' + bankQty, monthly: m, yearly: y });
+      }
+
+      const apiQty = Math.min(getFieldValue('bApiQty'), dossiers);
+      if (apiQty > 0) {
+        const y = apiQty * 10;
+        const m = y / 12;
+        yearly += y;
+        monthly += m;
+        addLine(lines, { label: 'Webservice/API x ' + apiQty, monthly: m, yearly: y });
+      }
+
+      const dmsGb = getFieldValue('bDmsGb');
+      if (dmsGb > 0) {
+        const m = dmsGb * 1;
+        const y = dmsGb * 12;
+        monthly += m;
+        yearly += y;
+        addLine(lines, { label: 'Extra DMS-opslag ' + dmsGb + ' GB', monthly: m, yearly: y });
+      }
+
+      const archiveQty = getFieldValue('archiveQty');
+      if (archiveQty > 0) {
+        const y = archiveQty * 12;
+        const m = y / 12;
+        yearly += y;
+        monthly += m;
+        addLine(lines, { label: 'Archiveringsmodule x ' + archiveQty, monthly: m, yearly: y });
+      }
+
+      if (getFieldValue('bOnboarding')) {
+        oneTime += 100;
+        addLine(lines, { label: 'Opstartkost B-licentie', oneTime: 100 });
+      }
+
+      return { monthly, yearly, oneTime, lines };
+    };
+
+    const calculateExtras = () => {
+      const lines = [];
+      let oneTime = 0;
+
+      const trainingHours = getFieldValue('trainingHours');
+      if (trainingHours > 0) {
+        const units = ceilIfNeeded(trainingHours);
+        const cost = units * 125;
+        oneTime += cost;
+        addLine(lines, { label: 'Opleiding ter plaatse (' + units + ' uur)', oneTime: cost });
+      }
+
+      const supportHours = getFieldValue('supportHours');
+      if (supportHours > 0) {
+        const units = ceilIfNeeded(supportHours);
+        const cost = units * 75;
+        oneTime += cost;
+        addLine(lines, { label: 'Extra support (' + units + ' uur)', oneTime: cost });
+      }
+
+      const consultWeeks = getFieldValue('consultWeeks');
+      if (consultWeeks > 0) {
+        const cost = consultWeeks * 100;
+        oneTime += cost;
+        addLine(lines, { label: 'Consultatie-toegang (' + consultWeeks + ' week/weken)', oneTime: cost });
+      }
+
+      const backupQty = getFieldValue('backupQty');
+      if (backupQty > 0) {
+        const cost = backupQty * 200;
+        oneTime += cost;
+        addLine(lines, { label: 'Offline backup herstellen x ' + backupQty, oneTime: cost });
+      }
+
+      return { oneTime, lines };
+    };
+
+    const renderResult = () => {
+      const type = els.dossierType.value;
+      updateVisibility(type);
+
+      const totals = { monthly: 0, yearly: 0, oneTime: 0 };
+      const lines = [];
+
+      if (type === 'u' || type === 'k') {
+        const res = calculateUK(type);
+        totals.monthly += res.monthly;
+        totals.yearly += res.yearly;
+        totals.oneTime += res.oneTime;
+        lines.push(...res.lines);
+      } else {
+        const res = calculateB();
+        totals.monthly += res.monthly;
+        totals.yearly += res.yearly;
+        totals.oneTime += res.oneTime;
+        lines.push(...res.lines);
+      }
+
+      const extras = calculateExtras();
+      totals.oneTime += extras.oneTime;
+      lines.push(...extras.lines);
+
+      els.monthly.textContent = formatCurrency(totals.monthly);
+      els.yearly.textContent = formatCurrency(totals.yearly);
+      els.oneTime.textContent = formatCurrency(totals.oneTime);
+
+      if (lines.length === 0) {
+        els.breakdown.innerHTML = '<li>Geen kosten geselecteerd.</li>';
+        return;
+      }
+
+      els.breakdown.innerHTML = lines.map(function (item) {
+        if (item.oneTime > 0 && item.monthly === 0 && item.yearly === 0) {
+          return '<li><strong>' + item.label + '</strong><br>Eenmalig ' + formatCurrency(item.oneTime) + '</li>';
+        }
+        const recurring = formatCurrency(item.monthly) + ' / maand | ' + formatCurrency(item.yearly) + ' / jaar';
+        if (item.oneTime > 0) {
+          return '<li><strong>' + item.label + '</strong><br>' + recurring + '<br>+ eenmalig ' + formatCurrency(item.oneTime) + '</li>';
+        }
+        return '<li><strong>' + item.label + '</strong><br>' + recurring + '</li>';
+      }).join('');
+    };
+
+    const inputs = root.querySelectorAll('[data-field]');
+    inputs.forEach(function (input) {
+      input.addEventListener('input', renderResult);
+      input.addEventListener('change', renderResult);
+    });
+
+    renderResult();
+  })();
+</script>
