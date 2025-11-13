@@ -648,6 +648,20 @@
       }
     };
 
+    const onboardingField = root.querySelector('[data-field="onboardingQty"]');
+    const state = {
+      onboardingTouched: false,
+      lastProfile: null
+    };
+
+    if (onboardingField) {
+      const markOnboardingTouched = function () {
+        state.onboardingTouched = onboardingField.value !== '';
+      };
+      onboardingField.addEventListener('input', markOnboardingTouched);
+      onboardingField.addEventListener('change', markOnboardingTouched);
+    }
+
     const PROFILES = {
       u: {
         label: 'U-dossier',
@@ -738,6 +752,23 @@
       if (!el) return 0;
       if (el.type === 'checkbox') return el.checked;
       return sanitizeNumber(el.value);
+    };
+
+    const ensureOnboardingDefaults = (type) => {
+      if (!onboardingField) return;
+      if (type === 'u') {
+        const portalQty = getFieldValue('portalQty');
+        const bookkeepingQty =
+          getFieldValue('smallQty') +
+          getFieldValue('mediumQty') +
+          getFieldValue('largeQty');
+        const targetQty = Math.max(portalQty, bookkeepingQty);
+        if (!state.onboardingTouched) {
+          onboardingField.value = targetQty > 0 ? targetQty : 0;
+        }
+      } else if (!state.onboardingTouched) {
+        onboardingField.value = 0;
+      }
     };
 
     const renderGuide = (type) => {
@@ -1048,8 +1079,14 @@
 
     const renderResult = () => {
       const type = els.dossierType ? els.dossierType.value : 'default';
+      if (state.lastProfile !== type) {
+        state.onboardingTouched = false;
+        state.lastProfile = type;
+      }
+
       updateVisibility(type);
       renderGuide(type);
+      ensureOnboardingDefaults(type);
 
       const totals = { monthly: 0, yearly: 0, oneTime: 0 };
       const lines = [];
