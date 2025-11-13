@@ -1,17 +1,38 @@
 <style>
   .octo-calculator {
     --accent: #464feb;
+    --accent-soft: rgba(70, 79, 235, 0.08);
     --border: #dfe1eb;
     --bg-muted: #f7f8fc;
     font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     background: #fff;
     border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
+    border-radius: 20px;
+    padding: 28px;
     color: #222;
-    box-shadow: 0 10px 35px rgba(70, 79, 235, 0.08);
-    max-width: 1100px;
+    box-shadow: 0 10px 40px rgba(70, 79, 235, 0.12);
+    max-width: 1180px;
     margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+  }
+  .octo-calculator::before,
+  .octo-calculator::after {
+    content: "";
+    position: absolute;
+    inset: -120px auto auto -120px;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle at center, rgba(70, 79, 235, 0.18), transparent 70%);
+    z-index: 0;
+    filter: blur(0);
+  }
+  .octo-calculator::after {
+    inset: auto -120px -120px auto;
+  }
+  .octo-calculator > * {
+    position: relative;
+    z-index: 1;
   }
   .octo-calculator h2 {
     margin: 0 0 8px;
@@ -22,6 +43,60 @@
     margin: 0 0 24px;
     color: #555;
   }
+  .octo-hero {
+    display: grid;
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+  .octo-hero__intro {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .octo-hero__badge {
+    align-self: flex-start;
+    background: linear-gradient(120deg, rgba(70, 79, 235, 0.85), rgba(119, 126, 255, 0.85));
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-weight: 600;
+    box-shadow: 0 8px 18px rgba(70, 79, 235, 0.25);
+  }
+  .octo-hero__steps {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+  .octo-step {
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 14px;
+    border: 1px solid rgba(70, 79, 235, 0.12);
+    padding: 14px 16px;
+    display: grid;
+    gap: 6px;
+    box-shadow: 0 10px 24px rgba(17, 23, 62, 0.08);
+    transform: translateY(16px);
+    opacity: 0;
+    animation: floatIn 0.6s ease forwards;
+  }
+  .octo-step:nth-child(2) {
+    animation-delay: 0.12s;
+  }
+  .octo-step:nth-child(3) {
+    animation-delay: 0.24s;
+  }
+  .octo-step strong {
+    font-size: 0.95rem;
+    color: #111;
+  }
+  .octo-step span {
+    font-size: 0.85rem;
+    color: #5a5f75;
+    line-height: 1.4;
+  }
   .octo-layout {
     display: grid;
     grid-template-columns: minmax(0, 3fr) minmax(260px, 1fr);
@@ -29,9 +104,15 @@
   }
   .octo-panel {
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: 16px;
     padding: 20px;
     background: #fff;
+    box-shadow: 0 10px 20px rgba(21, 27, 71, 0.04);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .octo-panel:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 30px rgba(21, 27, 71, 0.12);
   }
   .octo-panel + .octo-panel {
     margin-top: 16px;
@@ -82,6 +163,11 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+    position: sticky;
+    top: 12px;
+    align-self: flex-start;
+    box-shadow: 0 12px 28px rgba(21, 27, 71, 0.08);
+    transition: transform 0.3s ease;
   }
   .octo-summary h3 {
     margin: 0;
@@ -98,6 +184,11 @@
     border: 1px solid #ebecf3;
     padding: 12px;
     text-align: center;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .octo-totals div.is-lifted {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(70, 79, 235, 0.18);
   }
   .octo-totals span {
     display: block;
@@ -105,6 +196,11 @@
     font-size: 1.15rem;
     margin-top: 6px;
     color: var(--accent);
+    transition: color 0.3s ease;
+  }
+  .octo-totals span.is-updating {
+    animation: pulse 0.65s ease;
+    color: #222;
   }
   .octo-breakdown {
     max-height: 260px;
@@ -143,19 +239,162 @@
     font-size: 0.78rem;
     margin-bottom: 10px;
   }
+  .octo-guide {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px dashed rgba(70, 79, 235, 0.3);
+    border-radius: 14px;
+    padding: 16px;
+    margin: 16px 0 0;
+    display: grid;
+    gap: 10px;
+  }
+  .octo-guide strong {
+    color: #1c2153;
+  }
+  .octo-guide ul {
+    margin: 0;
+    padding-left: 18px;
+    color: #4d5165;
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+  .octo-quickstart {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid rgba(70, 79, 235, 0.16);
+    padding: 12px 14px;
+    display: grid;
+    gap: 10px;
+  }
+  .octo-quickstart strong {
+    font-size: 0.95rem;
+    color: #12152f;
+  }
+  .octo-quickstart ol {
+    margin: 0;
+    padding-left: 20px;
+    color: #4c5171;
+    font-size: 0.85rem;
+    line-height: 1.45;
+  }
+  .octo-quickstart li + li {
+    margin-top: 6px;
+  }
+  .octo-tip {
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    color: #3a3f60;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .octo-tip svg {
+    flex-shrink: 0;
+  }
+  details.octo-faq {
+    border: 1px solid rgba(70, 79, 235, 0.16);
+    border-radius: 12px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.92);
+    font-size: 0.85rem;
+    color: #3a3f60;
+  }
+  details.octo-faq + details.octo-faq {
+    margin-top: 10px;
+  }
+  details.octo-faq summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #1c2153;
+    margin: -4px -4px 6px;
+    padding: 4px;
+    list-style: none;
+  }
+  details.octo-faq summary::-webkit-details-marker {
+    display: none;
+  }
+  details.octo-faq ul {
+    margin: 6px 0 0;
+    padding-left: 18px;
+    line-height: 1.45;
+  }
   .octo-hidden {
     display: none !important;
+  }
+  @keyframes floatIn {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(1.05);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .octo-step,
+    .octo-panel,
+    .octo-summary,
+    .octo-totals div,
+    .octo-totals span {
+      animation: none !important;
+      transition: none !important;
+    }
   }
   @media (max-width: 960px) {
     .octo-layout {
       grid-template-columns: 1fr;
     }
+    .octo-summary {
+      position: relative;
+      top: auto;
+    }
   }
 </style>
 
 <div class="octo-calculator" data-octo-calculator>
-  <h2>Octopus prijscalculator</h2>
-  <p class="lead">Alle bedragen zijn excl. 21% btw. Stel hieronder een offerte samen voor U-, K- of B-dossiers.</p>
+  <div class="octo-hero">
+    <div class="octo-hero__intro">
+      <span class="octo-hero__badge">Welkom collega's</span>
+      <h2>Octopus prijscalculator</h2>
+      <p class="lead">Alle bedragen zijn excl. 21% btw. Gebruik deze gids om snel offertes op maat te bouwen voor U-, K- of B-dossiers.</p>
+      <div class="octo-tip">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 1.333a6.667 6.667 0 1 1 0 13.334A6.667 6.667 0 0 1 8 1.333Z" stroke="#464feb" stroke-width="1.2"/>
+          <path d="M8 4.667v4" stroke="#464feb" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="8" cy="10.667" r="0.667" fill="#464feb"/>
+        </svg>
+        <span><strong>Tip:</strong> werk stap voor stap. Start met het juiste dossiertype, vul daarna de modules en sluit af met eventuele extra diensten.</span>
+      </div>
+    </div>
+    <div class="octo-hero__steps">
+      <div class="octo-step">
+        <strong>Stap 1 · Basis</strong>
+        <span>Kies het dossiertype en geef aan hoeveel dossiers je nodig hebt. De calculator past de juiste prijsprofielen meteen toe.</span>
+      </div>
+      <div class="octo-step">
+        <strong>Stap 2 · Modules</strong>
+        <span>Activeer de modules per dossier. Krijg instant feedback over de maandelijkse en jaarlijkse impact.</span>
+      </div>
+      <div class="octo-step">
+        <strong>Stap 3 · Extra diensten</strong>
+        <span>Voeg trainingen, support of consultatie toe. De eenmalige kosten verschijnen automatisch in het overzicht.</span>
+      </div>
+    </div>
+  </div>
 
   <div class="octo-layout">
     <div>
@@ -169,6 +408,14 @@
           </select>
         </div>
         <p class="octo-tagline">U- en K-dossiers hebben dezelfde modules. K-dossiers ontvangen automatisch ~20% korting op licenties en opties.</p>
+        <div class="octo-guide" id="octo-guide">
+          <strong>Zo werkt dit profiel:</strong>
+          <ul>
+            <li>U-dossiers zijn bedoeld voor ondernemers die hun licentie zelf betalen.</li>
+            <li>Bank-, facturatie- en extra lijnmodules kan je per dossier activeren.</li>
+            <li>Krijg zicht op de impact door waarden in te vullen: alles wordt realtime doorgerekend.</li>
+          </ul>
+        </div>
       </div>
 
       <div class="octo-panel" data-section="uk">
@@ -279,6 +526,14 @@
           </div>
         </div>
         <p class="octo-note">Peppol en de ondernemersportaal-API blijven gratis voor ondernemers. Bankkosten van de bank (CODA) zijn niet inbegrepen.</p>
+        <details class="octo-faq">
+          <summary>Pro-tip voor B-dossiers</summary>
+          <ul>
+            <li>Documenteer welke interne dossiers het gratis full-option pakket gebruiken.</li>
+            <li>API-modules zijn populair bij kantoren met integraties: check of er al een koppeling actief is.</li>
+            <li>Stem archiveringsmodules af met het kantoorbeheer: facturatie start na stopzetting.</li>
+          </ul>
+        </details>
       </div>
 
       <div class="octo-panel">
@@ -309,6 +564,22 @@
             <small class="octo-note">&euro;200 per dossier/week.</small>
           </div>
         </div>
+        <details class="octo-faq">
+          <summary>Wanneer gebruik ik deze diensten?</summary>
+          <ul>
+            <li>Plan een onsite opleiding wanneer een team of ondernemer extra begeleiding nodig heeft.</li>
+            <li>Extra supporturen zijn ideaal om complexe migraties of fiscale piekperiodes op te vangen.</li>
+            <li>Offline backups inzetten bij audits of bij het herstellen van historische gegevens.</li>
+          </ul>
+        </details>
+        <details class="octo-faq">
+          <summary>Handige notities voor offertes</summary>
+          <ul>
+            <li>Vermeld altijd de uur- of weekprijs in de offerte om verrassingen te voorkomen.</li>
+            <li>Combineer meerdere diensten in één offerte en verwijs naar de breakdown rechts.</li>
+            <li>Onzeker? Raadpleeg het team #pricing in Teams voor uitzonderingen of maatwerk.</li>
+          </ul>
+        </details>
       </div>
     </div>
 
@@ -316,6 +587,14 @@
       <div>
         <h3>Resultaat</h3>
         <p class="octo-tagline">Update automatisch bij elke wijziging.</p>
+      </div>
+      <div class="octo-quickstart">
+        <strong>Snelstart voor nieuwe collega's</strong>
+        <ol>
+          <li>Bevestig met de klant of het om een U-, K- of B-dossier gaat.</li>
+          <li>Noteer het aantal dossiers en modules en vul de velden in voor een live prijsindicatie.</li>
+          <li>Gebruik de breakdown hieronder als bron voor je offerte of CRM-opvolging.</li>
+        </ol>
       </div>
       <div class="octo-totals">
         <div>
@@ -334,6 +613,14 @@
       <div>
         <strong>Kostenposten</strong>
         <ul class="octo-breakdown" id="octo-breakdown"></ul>
+      </div>
+      <div class="octo-tip">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 1.333a6.667 6.667 0 1 1 0 13.334A6.667 6.667 0 0 1 8 1.333Z" stroke="#464feb" stroke-width="1.2"/>
+          <path d="M6.667 6.667A1.333 1.333 0 0 1 8 5.333c.737 0 1.333.597 1.333 1.334 0 .737-.596 1.333-1.333 1.333v1.333" stroke="#464feb" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="8" cy="11.333" r="0.667" fill="#464feb"/>
+        </svg>
+        <span>Gebruik exporteer- of kopieerfuncties van je CRM om deze cijfers mee te nemen naar de definitieve offerte.</span>
       </div>
       <p class="octo-note">
         Tarieven gebaseerd op interne richtlijnen 2024-2025 voor Octopus (bankkosten der banken niet inbegrepen).
@@ -354,6 +641,7 @@
       oneTime: root.querySelector('#octo-onetime'),
       breakdown: root.querySelector('#octo-breakdown'),
       dossierType: root.querySelector('[data-field="dossierType"]'),
+      guide: root.querySelector('#octo-guide'),
       sections: {
         uk: root.querySelector('[data-section="uk"]'),
         b: root.querySelector('[data-section="b"]')
@@ -395,6 +683,45 @@
       }
     };
 
+    const GUIDE_CONTENT = {
+      u: {
+        title: 'Zo werkt dit profiel:',
+        bullets: [
+          'U-dossiers zijn bedoeld voor ondernemers die hun licentie zelf betalen en standaard een opstartkost hebben.',
+          'Bank-, facturatie- en extra lijnmodules kan je per dossier activeren wanneer de klant groeit.',
+          'Gebruik webinars als gratis add-on: ze staan standaard op &euro;0 in de calculator.'
+        ],
+        note: 'Controleer altijd of het klantnummer al bestaat om dubbele facturatie te vermijden.'
+      },
+      k: {
+        title: 'Zo werkt dit profiel:',
+        bullets: [
+          'K-dossiers lopen via het kantoor en genieten automatisch ~20% korting op licenties en modules.',
+          'Er zijn geen opstartkosten: gebruik het veld "Nieuwe licenties" enkel ter info wanneer nodig.',
+          'Combineer meerdere dossiers in één keer om bundelkortingen ten volle te benutten.'
+        ],
+        note: 'Tip: noteer meteen de verantwoordelijke dossierbeheerder in je CRM voor een vlotte opvolging.'
+      },
+      b: {
+        title: 'Zo werkt dit profiel:',
+        bullets: [
+          'B-dossiers zijn accountantslicenties met een minimum van 5 interne dossiers (waarvan 1 gratis full option).',
+          'Voer enkel extra full option dossiers of modules in bovenop het standaardpakket.',
+          'Archivering en extra DMS-opslag worden apart gefactureerd: stem dit af met het kantoor.'
+        ],
+        note: 'Vergeet niet om de opstartkost uit te vinken als het kantoor eerder al betaalde.'
+      },
+      default: {
+        title: 'Zo werkt dit profiel:',
+        bullets: [
+          'Kies een dossiertype om meer uitleg te zien en vul vervolgens de relevante velden in.',
+          'Alle bedragen worden automatisch omgerekend naar maand, jaar en eenmalige kosten.',
+          'Gebruik de breakdown aan de rechterzijde om je offerte te onderbouwen.'
+        ],
+        note: ''
+      }
+    };
+
     const formatCurrency = (value) => {
       return new Intl.NumberFormat('nl-BE', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(value);
     };
@@ -413,10 +740,42 @@
       return sanitizeNumber(el.value);
     };
 
+    const renderGuide = (type) => {
+      if (!els.guide) return;
+      const data = GUIDE_CONTENT[type] || GUIDE_CONTENT.default;
+      const items = (data.bullets || [])
+        .map(function (item) {
+          return '<li>' + item + '</li>';
+        })
+        .join('');
+      const note = data.note ? '<p class="octo-tagline">' + data.note + '</p>' : '';
+      els.guide.innerHTML = '<strong>' + data.title + '</strong><ul>' + items + '</ul>' + note;
+    };
+
     const updateVisibility = (type) => {
       const showUK = type === 'u' || type === 'k';
       if (els.sections.uk) els.sections.uk.classList.toggle('octo-hidden', !showUK);
       if (els.sections.b) els.sections.b.classList.toggle('octo-hidden', type !== 'b');
+    };
+
+    const animateTotals = () => {
+      [els.monthly, els.yearly, els.oneTime].forEach(function (span) {
+        if (!span) return;
+        const card = span.parentElement;
+        span.classList.remove('is-updating');
+        if (card) card.classList.remove('is-lifted');
+        void span.offsetWidth;
+        span.classList.add('is-updating');
+        if (card) {
+          card.classList.add('is-lifted');
+          setTimeout(function () {
+            card.classList.remove('is-lifted');
+          }, 420);
+        }
+        setTimeout(function () {
+          span.classList.remove('is-updating');
+        }, 420);
+      });
     };
 
     const addLine = (lines, config) => {
@@ -688,8 +1047,9 @@
     };
 
     const renderResult = () => {
-      const type = els.dossierType.value;
+      const type = els.dossierType ? els.dossierType.value : 'default';
       updateVisibility(type);
+      renderGuide(type);
 
       const totals = { monthly: 0, yearly: 0, oneTime: 0 };
       const lines = [];
@@ -715,6 +1075,7 @@
       els.monthly.textContent = formatCurrency(totals.monthly);
       els.yearly.textContent = formatCurrency(totals.yearly);
       els.oneTime.textContent = formatCurrency(totals.oneTime);
+      animateTotals();
 
       if (lines.length === 0) {
         els.breakdown.innerHTML = '<li>Geen kosten geselecteerd.</li>';
