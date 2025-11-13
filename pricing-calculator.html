@@ -563,49 +563,65 @@
       let yearly = 0;
       let oneTime = 0;
 
-      const dossiers = getFieldValue('bDossiers');
-      const tierOne = Math.min(dossiers, 50);
-      const tierTwo = Math.max(dossiers - 50, 0);
+      const dossiersField = root.querySelector('[data-field="bDossiers"]');
+      const rawDossiers = getFieldValue('bDossiers');
+      const normalizedDossiers = Math.max(Math.round(rawDossiers), 0);
+      const minimumDossiers = Math.max(normalizedDossiers, 5);
+      if (dossiersField && Number(dossiersField.value) !== minimumDossiers) {
+        dossiersField.value = minimumDossiers;
+      }
+
+      const freeDossiers = minimumDossiers > 0 ? 1 : 0;
+      const chargeableDossiers = Math.max(minimumDossiers - freeDossiers, 0);
+      if (freeDossiers > 0) {
+        lines.push({ label: 'Gratis intern dossier (incl. modules)', monthly: 0, yearly: 0, oneTime: 0, free: true });
+      }
+
+      const tierOne = Math.min(chargeableDossiers, 50);
+      const tierTwo = Math.max(chargeableDossiers - 50, 0);
       if (tierOne > 0) {
         const y = tierOne * 15;
         const m = y / 12;
         yearly += y;
         monthly += m;
-        addLine(lines, { label: 'B-dossiers 1-50 x ' + tierOne, monthly: m, yearly: y });
+        addLine(lines, { label: 'B-dossiers (betalend) 1-50 x ' + tierOne, monthly: m, yearly: y });
       }
       if (tierTwo > 0) {
         const y = tierTwo * 10;
         const m = y / 12;
         yearly += y;
         monthly += m;
-        addLine(lines, { label: 'B-dossiers vanaf 51 x ' + tierTwo, monthly: m, yearly: y });
+        addLine(lines, { label: 'B-dossiers (betalend) vanaf 51 x ' + tierTwo, monthly: m, yearly: y });
       }
 
-      const fullOption = Math.min(getFieldValue('bFullOption'), dossiers);
-      if (fullOption > 0) {
-        const m = fullOption * 3.5;
+      const normalizeModuleCount = (value) => Math.max(Math.round(Math.min(value, minimumDossiers)), 0);
+      const payableModuleUnits = (value) => Math.max(normalizeModuleCount(value) - freeDossiers, 0);
+
+      const fullOptionUnits = payableModuleUnits(getFieldValue('bFullOption'));
+      if (fullOptionUnits > 0) {
+        const m = fullOptionUnits * 3.5;
         const y = m * 12;
         monthly += m;
         yearly += y;
-        addLine(lines, { label: 'Full Option pakketten x ' + fullOption, monthly: m, yearly: y });
+        addLine(lines, { label: 'Full Option pakketten x ' + fullOptionUnits, monthly: m, yearly: y });
       }
 
-      const bankQty = Math.min(getFieldValue('bBankQty'), dossiers);
-      if (bankQty > 0) {
-        const y = bankQty * 5;
+      const bankUnits = payableModuleUnits(getFieldValue('bBankQty'));
+      if (bankUnits > 0) {
+        const y = bankUnits * 5;
         const m = y / 12;
         yearly += y;
         monthly += m;
-        addLine(lines, { label: 'Bankmodule x ' + bankQty, monthly: m, yearly: y });
+        addLine(lines, { label: 'Bankmodule x ' + bankUnits, monthly: m, yearly: y });
       }
 
-      const apiQty = Math.min(getFieldValue('bApiQty'), dossiers);
-      if (apiQty > 0) {
-        const y = apiQty * 10;
+      const apiUnits = payableModuleUnits(getFieldValue('bApiQty'));
+      if (apiUnits > 0) {
+        const y = apiUnits * 10;
         const m = y / 12;
         yearly += y;
         monthly += m;
-        addLine(lines, { label: 'Webservice/API x ' + apiQty, monthly: m, yearly: y });
+        addLine(lines, { label: 'Webservice/API x ' + apiUnits, monthly: m, yearly: y });
       }
 
       const dmsGb = getFieldValue('bDmsGb');
@@ -617,7 +633,7 @@
         addLine(lines, { label: 'Extra DMS-opslag ' + dmsGb + ' GB', monthly: m, yearly: y });
       }
 
-      const archiveQty = getFieldValue('archiveQty');
+      const archiveQty = payableModuleUnits(getFieldValue('archiveQty'));
       if (archiveQty > 0) {
         const y = archiveQty * 12;
         const m = y / 12;
@@ -706,6 +722,9 @@
       }
 
       els.breakdown.innerHTML = lines.map(function (item) {
+        if (item.free) {
+          return '<li><strong>' + item.label + '</strong><br>Gratis inbegrepen</li>';
+        }
         if (item.oneTime > 0 && item.monthly === 0 && item.yearly === 0) {
           return '<li><strong>' + item.label + '</strong><br>Eenmalig ' + formatCurrency(item.oneTime) + '</li>';
         }
